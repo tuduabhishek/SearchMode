@@ -16,5 +16,7 @@
 
 ##### 2. Database has been provided so that you don't have to scan same images multiple times.
 
+##### 3. Enter **keywords** and all the matched screeshots will be displayed.
+
 ## Download:
 **[Download](https://github.com/tuduabhishek/SearchMode/releases/tag/1.0.0)** for Windows PC from here.
