@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Screenshots</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+
+      body, html {
+            height: 100%;
+            margin: 0;
+          } 
+
+        .bg {
+        /* The image used */
+        background-image: url("background/bg3.jfif");
+
+        /* Full height */
+        height: 100%;
+
+        /* Center and scale the image nicely */
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+
+        .bd-placeholder-img {
+          font-size: 1.125rem;
+          text-anchor: middle;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }
+  
+        @media (min-width: 768px) {
+          .bd-placeholder-img-lg {
+            font-size: 3.5rem;
+          }
+        }
+        
+
+        
+
+        .form {
+        width: 100%;
+        max-width: 330px;
+        padding: 15px;
+        margin: auto;
+        }
+        
+        .form .form-control {
+        position: relative;
+        box-sizing: border-box;
+        height: auto;
+        padding: 10px;
+        font-size: 16px;
+        }
+        .form .form-control:focus {
+        z-index: 2;
+        }
+        
+      </style>
+
+</head>
+<body class="text-center">
+            <div class="bg">
+              <form class="form">
+                <svg class="mb-1" xmlns="http://www.w3.org/2000/svg" width="72" height="72" fill="currentColor" class="bi bi-image-alt" viewBox="0 0 16 16">
+                    <path d="M10.648 6.646a.5.5 0 0 1 .577-.093l4.777 3.947V15a1 1 0 0 1-1 1h-14a1 1 0 0 1-1-1v-2l3.646-4.354a.5.5 0 0 1 .63-.062l2.66 2.773 3.71-4.71z"/>
+                    <path fill-rule="evenodd" d="M4.5 5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+                </svg>
+        
+                <h5 class="mb-1">Select Images (Image Format- JPG & PNG)</h5>
+                <input  id="file" type="file" id="file-selector" class="form-control mb-1" accept=".jpg, .png" multiple>
+                <button class="btn rounded-pill btn-primary btn-block" type="submit" id="contBtn">Continue</button>
+                
+            </form>
+            </div>
+</body>
+<script>
+  const electron=require('electron');
+   const {ipcRenderer}=electron;
+   const form=document.querySelector('form');
+   form.addEventListener('submit',submitForm);
+
+   function submitForm(e){
+       e.preventDefault();
+       //const image=document.querySelector("#file").files[0].path;
+       const files=document.querySelector("#file").files;
+       let images=[];
+       for(let i=0;i<files.length;i++){
+           let image={
+               path:encodeURI(files[i].path),
+               name:files[i].name
+           }
+           images.push(image);
+       }
+       ipcRenderer.send('images:add',images);
+    }
+
+</script>
+</html>

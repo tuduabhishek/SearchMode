@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SearchMode</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        mark{
+            background: orange;
+            color: black;
+        }
+        br {
+        display: none;
+        }
+        html,body{
+            height: 100%;
+            margin: 0;
+        }
+    
+    </style>
+<body>
+        <div class="jumbotron jumbotron-fluid bg-light" style="background-image: linear-gradient(-225deg, #2CD8D5 0%, #C5C1FF 56%, #FFBAC3 100%);">
+            <div class="container">
+              <h1 class="display-4">SearchMode</h1>
+              <h3 class="lead">Search Through Screenshots</h3>
+              <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <div class="pt-3 pb-4">
+                        <form class="input-group">
+                            <input type="text" id="query" name="" class="form-control" value="" placeholder="Enter Keywords">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn bg-info" id="searchBtn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                  <path fill-rule="evenodd" d="M10.442 10.442a1 1 0 0 1 1.415 0l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1 0-1.415z"/>
+                                  <path fill-rule="evenodd" d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+                                </svg> Search</button>
+                            </div>
+                        </form>
+                </div>
+            </div>
+            </div>
+          </div>
+          </div>
+        
+      <div class="container" id="main" style="display:none;">
+          <div class="row mt-3">
+              <div class="col-lg-12">
+                  <div class="search-result-box card-box">
+                    <div class="mt-4 text-center">
+                        <h4 id="message"></h4></div>
+                    </div>
+                      <!-- end row -->
+                      <ul class="nav nav-tabs tabs-bordered">
+                          <li class="nav-item bg-primary p-2 text-light">All results <span class="badge bg-light text-dark" id="number"></span></li>
+                      </ul>
+                      <div class="tab-content">
+                          <div class="tab-pane active" id="home">
+                              <div class="row">
+                                  <div class="col-md-12" id="results">
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+      </div>
+
+      <div class="container text-center mt-5" id="intro">
+        <div class=" h-100 d-flex justify-content-center align-items-center mt-5">
+            <div class="p-2"><img src="background/magnifying-glass.png" class="img-fluid" style="max-height: 100px;max-width: 100px;"></div>
+            <div class="p-2"><img src="background/screenshot.png" class="img-fluid" style="max-height: 100px;max-width: 100px;"></div>
+          </div>
+          <h4 class="text-dark" id="introMsg"></h4>
+      </div>
+
+
+
+</body>
+<script>
+    const electron=require('electron');
+    const {ipcRenderer}=electron;
+    const Mark = require('mark.js');
+    const anime = require('animejs');
+    let message=document.getElementById("message");
+    let number=document.getElementById("number");
+    let query;
+    let introReq=true;
+    
+    document.querySelector("form").addEventListener("submit",function(e){
+        e.preventDefault();
+        query=document.getElementById("query").value;
+        ipcRenderer.send("query",query);
+    });
+
+
+    ipcRenderer.on("results",function(e,results){
+        if(introReq==true){
+            document.getElementById("intro").style.display = "none";
+            document.getElementById("main").style.display = "block";
+            introReq=false;
+        }
+        addResults(results);
+    });
+
+
+    function addResults(results){
+        let parent=document.getElementById("results");
+        removeAllChildNodes(parent);
+        number.innerText=results.length;
+        if(results.length===0) message.innerText='Search Results For "'+query+'" Not Found';
+        else message.innerText='Search Results For "'+query+'"';
+        anime({
+                targets: number,
+                translateX: [50,0],
+                easing: 'linear',
+                opacity:1,
+                duration: 200
+        });
+
+        anime({
+                targets: message,
+                translateX: [-250,0],
+                easing: 'linear',
+                opacity:1,
+                duration: 200
+            });
+
+        for(let i=0;i<results.length;i++){
+            let node=document.createElement("div");
+            node.classList.add("el");
+
+            let h4=document.createElement("h4");
+            h4.classList.add("mb-1");
+            let a=document.createElement("a");
+            a.classList.add("screenshot");
+            a.setAttribute("href","#"+results[i].path);
+            a.innerText=results[i].title;
+            h4.appendChild(a);
+            node.appendChild(h4);
+
+            let div=document.createElement("div");
+            div.classList.add("font-13");
+            div.classList.add("text-success");
+            div.classList.add("mb-3");
+            div.innerText=decodeURI(results[i].path);
+            node.appendChild(div);
+
+            let p=document.createElement("p");
+            p.classList.add("mb-0");
+            p.classList.add("text-muted");
+            p.innerText=results[i].body.replace(/([A-Z])/g, ' $1').trim();
+            node.appendChild(p);
+            
+            parent.appendChild(node);
+
+            var instance = new Mark(p);
+            instance.mark(query.trim().split(" "));
+        }
+
+        anime({
+            targets: '.el',
+            translateX: [250,0],
+            delay: anime.stagger(100) // increase delay by 100ms for each elements.
+        });
+
+        let screenshots=document.getElementsByClassName("screenshot");
+        for(let i=0;i<screenshots.length;i++){
+            screenshots[i].addEventListener('click',function(){
+                let uri=this.href;
+                ipcRenderer.send("view",uri.substring(uri.indexOf("#")+1));
+            });
+        }
+
+    }
+
+    function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+    }
+
+    ipcRenderer.on("docCount",function(e,count){
+        
+        if(count==1) document.getElementById("introMsg").innerText="Only 1 Screenshot scanned. Add more Screennshots from Menu Tab.";
+        else if(count>1)  document.getElementById("introMsg").innerText=count+" Screenshots scanned. Enter keywords and start Searching.";
+        else{
+            document.getElementById("main").style.display = "none";
+            document.getElementById("intro").style.display = "block";
+            document.getElementById("introMsg").innerText="No Screenshots scanned. Add Screennshots from File menu."
+            introReq=true;
+        } 
+    });
+    
+
+</script>
+</html>

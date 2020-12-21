@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Crop Screenshot</title>
+        <link rel="stylesheet"  href="node_modules/cropperjs/dist/cropper.min.css"/>
+        <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
+        <style>
+        img {
+        display: block;
+        /* This rule is very important, please don't ignore this */
+        max-width: 70%;
+        max-height: 70%;
+        }
+        html,
+        body {
+        background-color: #FFFFFF;
+        }
+        
+        </style>
+    </head>
+    <body class="text-center">
+        <div class="content">
+            <div class="container p-2">
+                <p class="text-danger">In case of multiple images selected, the current crop will be applied to all of them.</p>
+                <img id="myImg" src=''>
+                <button class="mt-2 btn btn-success" id="contBtn">Continue</button>
+            </div>
+        </div>
+        
+    </body>
+    <script>
+
+        const electron=require('electron');
+        const {ipcRenderer}=electron;
+        const Cropper=require('cropperjs');
+        const img=document.querySelector("#myImg");
+        let t,l,w,h;
+
+        ipcRenderer.on('imagePath',function(e,imagePath){
+            document.getElementById('myImg').src=decodeURI(imagePath);
+            const cropper = new Cropper(img, {
+                zoomable:false,
+                crop(event) {
+                    w=Math.abs(Math.round(event.detail.width));
+                    h=Math.abs(Math.round(event.detail.height));
+                    l=Math.abs(Math.round(event.detail.x));
+                    t=Math.abs(Math.round(event.detail.y));
+                },
+            });
+        });
+
+        document.getElementById("contBtn").addEventListener("click",function(){
+            const rectangle = { left: l, top: t, width: w, height: h}
+            ipcRenderer.send('images:startOCR',rectangle);
+        });
+        
+
+    </script>
+</html>

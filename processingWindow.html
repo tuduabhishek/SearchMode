@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Processing</title>
+        <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    </head>
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+          } 
+
+        .bg {
+        /* The image used */
+        background-image: url("background/bg3.jfif");
+
+        /* Full height */
+        height: 100%;
+
+        /* Center and scale the image nicely */
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            background: #FF3D00;
+            margin: auto;
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            animation: rotationBack 1s ease-in-out infinite reverse;
+            }
+            .loader::before {
+            content: '';  
+            box-sizing: border-box;
+            left: 0;
+            top: 0;
+            transform: rotate(45deg);
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background: #FF3D00;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+            }
+            .loader::after {
+            content: '';  
+            box-sizing: border-box;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            background: #FFF;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+            }
+            @keyframes rotationBack {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(-360deg);
+            }
+            }
+    
+        
+    </style>
+    <body class="text-center">
+        <div class="bg">
+            <div class="container">
+                <div class="p-3">
+                    <span class="loader"></span>
+                </div>
+                <h5 class="mb-1 mt-4" id="currImage"></h5>
+                <div class="progress mb-1" style="height: 10px;">
+                    <div id="currProg" class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+                  </div>
+                  <h5 class="mb-1 mt-4" id="total"></h5>
+                  <div class="progress" style="height: 10px;">
+                    <div id="totalProg" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+                  </div>
+            </div>
+        </div>
+        
+    </body>
+    <script>
+        const electron=require('electron');
+        const {ipcRenderer}=electron;
+        ipcRenderer.on('ui:curr',function(e,imageName){ 
+            document.getElementById("currImage").innerText="Processing : "+imageName;
+           
+        });
+
+        ipcRenderer.on('ui:total',function(e,data){
+            document.getElementById("total").innerHTML="Total Image <span id='tc' class='badge bg-success text-white'>"+data.total+"</span> Completed <span id='cc' class='badge bg-warning text-white'>"+data.completed+"</span>";
+            let per=data.completed/data.total*100;
+            document.getElementById("totalProg").style.width=per+"%";
+          
+        });
+        
+
+        ipcRenderer.on('progressBar:curr',function(e,progress){
+            document.getElementById("currProg").style.width=progress;
+        });
+
+    </script>
+</html>
