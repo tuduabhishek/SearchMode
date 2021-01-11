@@ -13,10 +13,7 @@ var folderList=new Set();
 var cProg=0,cScanned=0;
 var contents;
 
-const worker = createWorker({
-    cachePath: path.join(__dirname, 'lang-data'),
-  logger: m => updateCurrProg(m)
-});
+
 
 var index = elasticlunr(function () {
     this.addField('title');
@@ -359,12 +356,18 @@ ipcMain.on('delAll',function(e,val){
 });
 
 async function startProcessing(rectangle){
+    
     for(let i=0;i<imagesFiles.length;i++){
         processingWindow.webContents.send("ui:total",{total:imagesFiles.length,completed:i});
         processingWindow.webContents.send("ui:curr",imagesFiles[i].name);
         
 
           await (async () => {
+            const worker = createWorker({
+                cachePath: path.join(__dirname, 'lang-data'),
+              logger: m => updateCurrProg(m)
+            });
+        
             await worker.load();
             await worker.loadLanguage('eng');
             await worker.initialize('eng');
