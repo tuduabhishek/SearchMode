@@ -219,8 +219,7 @@ function createProcessingWindow(){
     }));
 
     processingWindow.on('closed',function(){
-        processingWindow=null;
-        worker.terminate();
+        processingWindow=null;       
     });
 
     processingWindow.on('ready-to-show',function(){
@@ -356,6 +355,11 @@ ipcMain.on('delAll',function(e,val){
 });
 
 async function startProcessing(rectangle){
+
+    const worker = createWorker({
+        cachePath: path.join(__dirname, 'lang-data'),
+      logger: m => updateCurrProg(m)
+    });
     
     for(let i=0;i<imagesFiles.length;i++){
         processingWindow.webContents.send("ui:total",{total:imagesFiles.length,completed:i});
@@ -363,11 +367,6 @@ async function startProcessing(rectangle){
         
 
           await (async () => {
-            const worker = createWorker({
-                cachePath: path.join(__dirname, 'lang-data'),
-              logger: m => updateCurrProg(m)
-            });
-        
             await worker.load();
             await worker.loadLanguage('eng');
             await worker.initialize('eng');
@@ -390,18 +389,25 @@ async function startProcessing(rectangle){
           })();
         
     }
+
     mainWindow.webContents.send("docCount",cScanned);
     processingWindow.close();
 }
 
 
 function updateCurrProg(data){
-    if(data.status.localeCompare("recognizing text")!=0) return;
-    let temp=Math.round(data.progress*100);
-    if(temp==0) cProg=0;
-    if(temp-cProg>5){
-        cProg=temp;
-        processingWindow.webContents.send("progressBar:curr",cProg+"%");
+    try{
+        
+        if(data.status.localeCompare("recognizing text")!=0) return;
+        let temp=Math.round(data.progress*100);
+        if(temp==0) cProg=0;
+        if(temp-cProg>5){
+            cProg=temp;
+            processingWindow.webContents.send("progressBar:curr",cProg+"%");
+        }   
+    }
+    catch(e){
+        process.exit();
     }
 }
 

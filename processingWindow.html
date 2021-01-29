@@ -83,6 +83,7 @@
                   <div class="progress" style="height: 10px;">
                     <div id="totalProg" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
                   </div>
+                  <p class="mt-2" style="background-color: #FFF;color: crimson;" >NOTE : Closing this window will close the application. You have to restart manually again. </p>
             </div>
         </div>
         
@@ -99,6 +100,7 @@
             document.getElementById("total").innerHTML="Total Image <span id='tc' class='badge bg-success text-white'>"+data.total+"</span> Completed <span id='cc' class='badge bg-warning text-white'>"+data.completed+"</span>";
             let per=data.completed/data.total*100;
             document.getElementById("totalProg").style.width=per+"%";
+            document.getElementById("currProg").style.width=0;
           
         });
         
