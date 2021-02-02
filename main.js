@@ -356,28 +356,41 @@ ipcMain.on('delAll',function(e,val){
 
 async function startProcessing(rectangle){
 
-    const worker = createWorker({
-        cachePath: path.join(__dirname, 'lang-data'),
-      logger: m => updateCurrProg(m)
-    });
+    processingWindow.webContents.openDevTools();
+
+    
     
     for(let i=0;i<imagesFiles.length;i++){
         processingWindow.webContents.send("ui:total",{total:imagesFiles.length,completed:i});
         processingWindow.webContents.send("ui:curr",imagesFiles[i].name);
         
+        await read(imagesFiles[i],rectangle);
+        
+        
+    }
 
-          await (async () => {
+    mainWindow.webContents.send("docCount",cScanned);
+    processingWindow.close();
+}
+
+async function read(imageFile,rectangle){
+            
+    const worker = createWorker({
+        logger: m => updateCurrProg(m)
+      });
+    
             await worker.load();
             await worker.loadLanguage('eng');
             await worker.initialize('eng');
-            const { data: { text } } = await worker.recognize(decodeURI(imagesFiles[i].path), { rectangle });
+            const { data: { text } } = await worker.recognize(decodeURI(imageFile.path), { rectangle });
             let date=new Date();
             let doc={
                 "id":date.getTime(),
-                "title":imagesFiles[i].name,
-                "path":imagesFiles[i].path,
+                "title":imageFile.name,
+                "path":imageFile.path,
                 "body":text.replace(/[\x00-\x08\x0E-\x1F\x7F-\uFFFF]/g, ' ')
             };
+            await worker.terminate();
             let uri=decodeURI(doc.path);
             uri=uri.substr(0,uri.lastIndexOf("\\"));
             folderList.add(encodeURI(uri));
@@ -385,13 +398,7 @@ async function startProcessing(rectangle){
             cScanned++;
             db.insert(doc, function(err, doc) {
             });
-            await worker.terminate();
-          })();
-        
-    }
 
-    mainWindow.webContents.send("docCount",cScanned);
-    processingWindow.close();
 }
 
 
